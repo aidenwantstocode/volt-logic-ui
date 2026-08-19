@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import voltlogicLogo from './assets/voltlogic-logo.svg';
 
 // Data Perusahaan & Tipe Baterai
 const COMPANY_DATA = [
@@ -77,13 +78,13 @@ export default function App() {
       {/* Central Content (Elevated slightly higher on the page) */}
       <div className="w-full flex-1 flex flex-col items-center justify-center pt-2 pb-24">
 
-        {/* Logo VOLTLOGIC */}
-        <div className="mb-8 text-center">
-          <div className="inline-block px-10 py-3.5 rounded-2xl bg-[#10241b]/90 border border-emerald-500/30 shadow-2xl backdrop-blur-md">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-wider text-gray-100 font-sans">
-              VOLT<span className="text-[#52b788]">LOGIC</span>
-            </h1>
-          </div>
+        {/* Logo VOLTLOGIC SVG */}
+        <div className="mb-8 flex justify-center">
+          <img
+            src={voltlogicLogo}
+            alt="VOLTLOGIC Logo"
+            className="h-20 sm:h-24 w-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+          />
         </div>
 
         {/* Kontainer Dropdown & Tombol */}
