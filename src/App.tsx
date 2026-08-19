@@ -72,83 +72,107 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen w-screen flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_center,_#1b4332_0%,_#0d2118_50%,_#060e0a_100%)]">
+    <div className="min-h-[125vh] w-full flex flex-col justify-between items-center p-6 bg-[radial-gradient(ellipse_at_top,_#1b4332_0%,_#0d2118_45%,_#060e0a_100%)] text-gray-100 selection:bg-emerald-500 selection:text-gray-950">
 
-      {/* Logo VOLTLOGIC */}
-      <div className="mb-10 text-center">
-        <div className="inline-block px-10 py-3.5 rounded-2xl bg-[#10241b]/90 border border-emerald-500/30 shadow-2xl backdrop-blur-md">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-wider text-gray-100 font-sans">
-            VOLT<span className="text-[#52b788]">LOGIC</span>
-          </h1>
-        </div>
-      </div>
+      {/* Central Content (Elevated slightly higher on the page) */}
+      <div className="w-full flex-1 flex flex-col items-center justify-center pt-2 pb-24">
 
-      {/* Kontainer Dropdown & Tombol */}
-      <div className="w-full max-w-sm space-y-6">
-
-        {/* Dropdown 1: Nama Perusahaan */}
-        <div className="space-y-1">
-          <label className="block text-xs font-mono text-gray-300">Nama Perusahaan</label>
-          <div className="relative">
-            <select
-              value={selectedCompany}
-              onChange={(e) => {
-                setSelectedCompany(e.target.value);
-                setSelectedBattery('');
-              }}
-              className="w-full appearance-none bg-white text-gray-800 font-mono text-sm px-4 py-3 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-emerald-400 pr-10 cursor-pointer"
-            >
-              <option value="">PT.</option>
-              {COMPANY_DATA.map((comp) => (
-                <option key={comp.name} value={comp.name}>{comp.name}</option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-              ▼
-            </div>
+        {/* Logo VOLTLOGIC */}
+        <div className="mb-8 text-center">
+          <div className="inline-block px-10 py-3.5 rounded-2xl bg-[#10241b]/90 border border-emerald-500/30 shadow-2xl backdrop-blur-md">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-wider text-gray-100 font-sans">
+              VOLT<span className="text-[#52b788]">LOGIC</span>
+            </h1>
           </div>
         </div>
 
-        {/* Dropdown 2: Jenis Baterai */}
-        <div className="space-y-1">
-          <label className="block text-xs font-mono text-gray-300">Jenis baterai</label>
-          <div className="relative">
-            <select
-              value={selectedBattery}
-              disabled={!selectedCompany}
-              onChange={(e) => setSelectedBattery(e.target.value)}
-              className="w-full appearance-none bg-white text-gray-800 font-mono text-sm px-4 py-3 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-emerald-400 pr-10 cursor-pointer disabled:bg-gray-200 disabled:cursor-not-allowed"
-            >
-              <option value="">jenis baterai</option>
-              {availableBatteries.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-              ▼
+        {/* Kontainer Dropdown & Tombol */}
+        <main className="w-full max-w-sm space-y-6">
+
+          {/* Dropdown 1: Nama Perusahaan */}
+          <div className="space-y-1">
+            <label className="block text-xs font-mono text-gray-300">Nama Perusahaan</label>
+            <div className="relative">
+              <select
+                value={selectedCompany}
+                onChange={(e) => {
+                  setSelectedCompany(e.target.value);
+                  setSelectedBattery('');
+                }}
+                className="w-full appearance-none bg-white text-gray-800 font-mono text-sm px-4 py-3 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-emerald-400 pr-10 cursor-pointer"
+              >
+                <option value="">PT.</option>
+                {COMPANY_DATA.map((comp) => (
+                  <option key={comp.name} value={comp.name}>{comp.name}</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                ▼
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Tombol Aksi Bersampingan */}
-        <div className="grid grid-cols-2 gap-0 pt-4">
-          <button
-            onClick={() => setShowHistoryModal(true)}
-            disabled={!selectedCompany || !selectedBattery}
-            className="bg-[#61a986] hover:bg-[#529474] text-white font-medium text-xs sm:text-sm py-4 rounded-l-2xl border-r border-emerald-950/20 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Riwayat Database
-          </button>
+          {/* Dropdown 2: Jenis Baterai */}
+          <div className="space-y-1">
+            <label className="block text-xs font-mono text-gray-300">Jenis baterai</label>
+            <div className="relative">
+              <select
+                value={selectedBattery}
+                disabled={!selectedCompany}
+                onChange={(e) => setSelectedBattery(e.target.value)}
+                className="w-full appearance-none bg-white text-gray-800 font-mono text-sm px-4 py-3 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-emerald-400 pr-10 cursor-pointer disabled:bg-gray-200 disabled:cursor-not-allowed"
+              >
+                <option value="">jenis baterai</option>
+                {availableBatteries.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                ▼
+              </div>
+            </div>
+          </div>
 
-          <button
-            onClick={() => setShowInputModal(true)}
-            disabled={!selectedCompany || !selectedBattery}
-            className="bg-[#61a986] hover:bg-[#529474] text-white font-medium text-xs sm:text-sm py-4 rounded-r-2xl transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Cek/Input Baterai
-          </button>
-        </div>
+          {/* Tombol Aksi Bersampingan */}
+          <div className="grid grid-cols-2 gap-0 pt-4">
+            <button
+              onClick={() => setShowHistoryModal(true)}
+              disabled={!selectedCompany || !selectedBattery}
+              className="bg-[#61a986] hover:bg-[#529474] text-white font-medium text-xs sm:text-sm py-4 rounded-l-2xl border-r border-emerald-950/20 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Riwayat Database
+            </button>
+
+            <button
+              onClick={() => setShowInputModal(true)}
+              disabled={!selectedCompany || !selectedBattery}
+              className="bg-[#61a986] hover:bg-[#529474] text-white font-medium text-xs sm:text-sm py-4 rounded-r-2xl transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cek/Input Baterai
+            </button>
+          </div>
+        </main>
       </div>
+
+      {/* Footer Section */}
+      <footer className="w-full max-w-2xl mt-auto pt-8 pb-4 border-t border-emerald-500/15 flex flex-col items-center gap-3 text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-[11px] font-mono text-emerald-400 backdrop-blur-sm">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span>DEVELOPMENTAL BUILD • v0.1.0-alpha</span>
+        </div>
+
+        <p className="text-xs text-gray-400 max-w-md font-sans">
+          VoltLogic Pre-Dispatch Battery Diagnostics System. For internal testing and vehicle telemetry simulation only.
+        </p>
+
+        <div className="flex items-center justify-center gap-1.5 text-[11px] font-mono text-amber-400/80 bg-amber-950/30 border border-amber-500/20 px-3 py-1 rounded-md">
+          <span>⚠</span>
+          <span>Notice: This is an active developmental build. Features and data models may change without notice.</span>
+        </div>
+      </footer>
 
       {/* MODAL 1: Input Telemetri Baterai */}
       {showInputModal && (
@@ -236,10 +260,10 @@ export default function App() {
 
             {predictionResult && (
               <div className={`mt-5 p-4 rounded-xl border ${predictionResult.status === 'HEALTHY'
-                  ? 'bg-emerald-950/60 border-emerald-500 text-emerald-200'
-                  : predictionResult.status === 'WARNING'
-                    ? 'bg-amber-950/60 border-amber-500 text-amber-200'
-                    : 'bg-rose-950/60 border-rose-500 text-rose-200'
+                ? 'bg-emerald-950/60 border-emerald-500 text-emerald-200'
+                : predictionResult.status === 'WARNING'
+                  ? 'bg-amber-950/60 border-amber-500 text-amber-200'
+                  : 'bg-rose-950/60 border-rose-500 text-rose-200'
                 }`}>
                 <div className="font-bold text-sm">
                   STATUS: {predictionResult.status} (Keyakinan: {predictionResult.confidence})
