@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useRef, useEffect, type FormEvent } from 'react';
 import voltlogicLogo from './assets/voltlogic-logo.svg';
 
 // Data Perusahaan & Tipe Baterai
@@ -20,8 +20,26 @@ const COMPANY_DATA = [
 export default function App() {
   const [selectedCompany, setSelectedCompany] = useState('');
   const [selectedBattery, setSelectedBattery] = useState('');
+  const [isCompanyOpen, setIsCompanyOpen] = useState(false);
+  const [isBatteryOpen, setIsBatteryOpen] = useState(false);
   const [showInputModal, setShowInputModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+  const dropdownContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownContainerRef.current &&
+        !dropdownContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsCompanyOpen(false);
+        setIsBatteryOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Form Telemetri State
   const [telemetry, setTelemetry] = useState({
@@ -76,7 +94,7 @@ export default function App() {
     <div className="min-h-[125vh] w-full flex flex-col justify-between items-center p-6 bg-[radial-gradient(ellipse_at_top,_#1b4332_0%,_#0d2118_45%,_#060e0a_100%)] text-gray-100 selection:bg-emerald-500 selection:text-gray-950">
 
       {/* Central Content (Elevated slightly higher on the page) */}
-      <div className="w-full flex-1 flex flex-col items-center justify-center pt-2 pb-24">
+      <div className="w-full flex-1 flex flex-col items-center justify-center pt-2 pb-24 transition-all duration-300">
 
         {/* Logo VOLTLOGIC SVG */}
         <div className="mb-8 flex justify-center">
@@ -88,54 +106,130 @@ export default function App() {
         </div>
 
         {/* Kontainer Dropdown & Tombol */}
-        <main className="w-full max-w-sm space-y-6">
+        <main ref={dropdownContainerRef} className="w-full max-w-sm space-y-6 transition-all duration-300">
 
           {/* Dropdown 1: Nama Perusahaan */}
           <div className="space-y-1">
             <label className="block text-xs font-mono text-gray-300">Nama Perusahaan</label>
-            <div className="relative">
-              <select
-                value={selectedCompany}
-                onChange={(e) => {
-                  setSelectedCompany(e.target.value);
-                  setSelectedBattery('');
+            <div className="transition-all duration-300">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCompanyOpen(!isCompanyOpen);
+                  setIsBatteryOpen(false);
                 }}
-                className="w-full appearance-none bg-white text-gray-800 font-mono text-sm px-4 py-3 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-emerald-400 pr-10 cursor-pointer"
+                className={`w-full bg-white text-gray-800 font-mono text-sm px-4 py-3 rounded-lg shadow flex items-center justify-between cursor-pointer transition-all duration-200 ${isCompanyOpen ? 'ring-2 ring-emerald-400' : 'hover:bg-gray-50'
+                  }`}
               >
-                <option value="">PT.</option>
-                {COMPANY_DATA.map((comp) => (
-                  <option key={comp.name} value={comp.name}>{comp.name}</option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                ▼
-              </div>
+                <span className={`truncate ${!selectedCompany ? 'text-gray-500' : 'text-gray-900 font-medium'}`}>
+                  {selectedCompany || 'PT.'}
+                </span>
+                <span className={`text-xs text-gray-500 transition-transform duration-300 ${isCompanyOpen ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
+
+              {/* In-Flow Options (Pushes downstream items downward) */}
+              {isCompanyOpen && (
+                <div className="mt-2 bg-white text-gray-800 font-mono text-sm rounded-lg shadow-xl overflow-hidden border border-emerald-500/20 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div
+                    onClick={() => {
+                      setSelectedCompany('');
+                      setSelectedBattery('');
+                      setIsCompanyOpen(false);
+                    }}
+                    className="px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-800 text-gray-500 cursor-pointer transition-colors"
+                  >
+                    PT. (Reset)
+                  </div>
+                  {COMPANY_DATA.map((comp) => (
+                    <div
+                      key={comp.name}
+                      onClick={() => {
+                        setSelectedCompany(comp.name);
+                        setSelectedBattery('');
+                        setIsCompanyOpen(false);
+                      }}
+                      className={`px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 cursor-pointer flex items-center justify-between transition-colors ${
+                        selectedCompany === comp.name ? 'bg-emerald-50/80 font-bold text-emerald-900' : ''
+                      }`}
+                    >
+                      <span className="truncate">{comp.name}</span>
+                      {selectedCompany === comp.name && (
+                        <span className="text-emerald-600 text-xs">✓</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Dropdown 2: Jenis Baterai */}
           <div className="space-y-1">
             <label className="block text-xs font-mono text-gray-300">Jenis baterai</label>
-            <div className="relative">
-              <select
-                value={selectedBattery}
+            <div className="transition-all duration-300">
+              <button
+                type="button"
                 disabled={!selectedCompany}
-                onChange={(e) => setSelectedBattery(e.target.value)}
-                className="w-full appearance-none bg-white text-gray-800 font-mono text-sm px-4 py-3 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-emerald-400 pr-10 cursor-pointer disabled:bg-gray-200 disabled:cursor-not-allowed"
+                onClick={() => {
+                  if (selectedCompany) {
+                    setIsBatteryOpen(!isBatteryOpen);
+                    setIsCompanyOpen(false);
+                  }
+                }}
+                className={`w-full font-mono text-sm px-4 py-3 rounded-lg shadow flex items-center justify-between transition-all duration-200 ${
+                  !selectedCompany
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : isBatteryOpen
+                    ? 'bg-white text-gray-800 ring-2 ring-emerald-400 cursor-pointer'
+                    : 'bg-white text-gray-800 hover:bg-gray-50 cursor-pointer'
+                }`}
               >
-                <option value="">jenis baterai</option>
-                {availableBatteries.map((type) => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                ▼
-              </div>
+                <span className={`truncate ${!selectedBattery ? 'text-gray-500' : 'text-gray-900 font-medium'}`}>
+                  {selectedBattery || 'jenis baterai'}
+                </span>
+                <span className={`text-xs text-gray-500 transition-transform duration-300 ${isBatteryOpen ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
+
+              {/* In-Flow Options (Pushes downstream items downward) */}
+              {isBatteryOpen && selectedCompany && (
+                <div className="mt-2 bg-white text-gray-800 font-mono text-sm rounded-lg shadow-xl overflow-hidden border border-emerald-500/20 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div
+                    onClick={() => {
+                      setSelectedBattery('');
+                      setIsBatteryOpen(false);
+                    }}
+                    className="px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-800 text-gray-500 cursor-pointer transition-colors"
+                  >
+                    jenis baterai (Reset)
+                  </div>
+                  {availableBatteries.map((type) => (
+                    <div
+                      key={type}
+                      onClick={() => {
+                        setSelectedBattery(type);
+                        setIsBatteryOpen(false);
+                      }}
+                      className={`px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 cursor-pointer flex items-center justify-between transition-colors ${
+                        selectedBattery === type ? 'bg-emerald-50/80 font-bold text-emerald-900' : ''
+                      }`}
+                    >
+                      <span className="truncate">{type}</span>
+                      {selectedBattery === type && (
+                        <span className="text-emerald-600 text-xs">✓</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Tombol Aksi Bersampingan */}
-          <div className="grid grid-cols-2 gap-0 pt-4">
+          <div className="grid grid-cols-2 gap-0 pt-4 transition-all duration-300">
             <button
               onClick={() => setShowHistoryModal(true)}
               disabled={!selectedCompany || !selectedBattery}
