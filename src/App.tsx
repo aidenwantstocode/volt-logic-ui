@@ -129,39 +129,47 @@ export default function App() {
                 </span>
               </button>
 
-              {/* In-Flow Options (Pushes downstream items downward) */}
-              {isCompanyOpen && (
-                <div className="mt-2 bg-white text-gray-800 font-mono text-sm rounded-lg shadow-xl overflow-hidden border border-emerald-500/20 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div
-                    onClick={() => {
-                      setSelectedCompany('');
-                      setSelectedBattery('');
-                      setIsCompanyOpen(false);
-                    }}
-                    className="px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-800 text-gray-500 cursor-pointer transition-colors"
-                  >
-                    PT. (Reset)
-                  </div>
-                  {COMPANY_DATA.map((comp) => (
+              {/* In-Flow Options (Gradually expands and pushes downstream items downward) */}
+              <div
+                className={`grid transition-all duration-300 ease-out ${
+                  isCompanyOpen
+                    ? 'grid-rows-[1fr] opacity-100 mt-2'
+                    : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none'
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="bg-white text-gray-800 font-mono text-sm rounded-lg shadow-xl overflow-hidden border border-emerald-500/20 divide-y divide-gray-100">
                     <div
-                      key={comp.name}
                       onClick={() => {
-                        setSelectedCompany(comp.name);
+                        setSelectedCompany('');
                         setSelectedBattery('');
                         setIsCompanyOpen(false);
                       }}
-                      className={`px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 cursor-pointer flex items-center justify-between transition-colors ${
-                        selectedCompany === comp.name ? 'bg-emerald-50/80 font-bold text-emerald-900' : ''
-                      }`}
+                      className="px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-800 text-gray-500 cursor-pointer transition-colors"
                     >
-                      <span className="truncate">{comp.name}</span>
-                      {selectedCompany === comp.name && (
-                        <span className="text-emerald-600 text-xs">✓</span>
-                      )}
+                      PT. (Reset)
                     </div>
-                  ))}
+                    {COMPANY_DATA.map((comp) => (
+                      <div
+                        key={comp.name}
+                        onClick={() => {
+                          setSelectedCompany(comp.name);
+                          setSelectedBattery('');
+                          setIsCompanyOpen(false);
+                        }}
+                        className={`px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 cursor-pointer flex items-center justify-between transition-colors ${
+                          selectedCompany === comp.name ? 'bg-emerald-50/80 font-bold text-emerald-900' : ''
+                        }`}
+                      >
+                        <span className="truncate">{comp.name}</span>
+                        {selectedCompany === comp.name && (
+                          <span className="text-emerald-600 text-xs">✓</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
@@ -194,37 +202,45 @@ export default function App() {
                 </span>
               </button>
 
-              {/* In-Flow Options (Pushes downstream items downward) */}
-              {isBatteryOpen && selectedCompany && (
-                <div className="mt-2 bg-white text-gray-800 font-mono text-sm rounded-lg shadow-xl overflow-hidden border border-emerald-500/20 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div
-                    onClick={() => {
-                      setSelectedBattery('');
-                      setIsBatteryOpen(false);
-                    }}
-                    className="px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-800 text-gray-500 cursor-pointer transition-colors"
-                  >
-                    jenis baterai (Reset)
-                  </div>
-                  {availableBatteries.map((type) => (
+              {/* In-Flow Options (Gradually expands and pushes downstream items downward) */}
+              <div
+                className={`grid transition-all duration-300 ease-out ${
+                  isBatteryOpen && selectedCompany
+                    ? 'grid-rows-[1fr] opacity-100 mt-2'
+                    : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none'
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="bg-white text-gray-800 font-mono text-sm rounded-lg shadow-xl overflow-hidden border border-emerald-500/20 divide-y divide-gray-100">
                     <div
-                      key={type}
                       onClick={() => {
-                        setSelectedBattery(type);
+                        setSelectedBattery('');
                         setIsBatteryOpen(false);
                       }}
-                      className={`px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 cursor-pointer flex items-center justify-between transition-colors ${
-                        selectedBattery === type ? 'bg-emerald-50/80 font-bold text-emerald-900' : ''
-                      }`}
+                      className="px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-800 text-gray-500 cursor-pointer transition-colors"
                     >
-                      <span className="truncate">{type}</span>
-                      {selectedBattery === type && (
-                        <span className="text-emerald-600 text-xs">✓</span>
-                      )}
+                      jenis baterai (Reset)
                     </div>
-                  ))}
+                    {availableBatteries.map((type) => (
+                      <div
+                        key={type}
+                        onClick={() => {
+                          setSelectedBattery(type);
+                          setIsBatteryOpen(false);
+                        }}
+                        className={`px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 cursor-pointer flex items-center justify-between transition-colors ${
+                          selectedBattery === type ? 'bg-emerald-50/80 font-bold text-emerald-900' : ''
+                        }`}
+                      >
+                        <span className="truncate">{type}</span>
+                        {selectedBattery === type && (
+                          <span className="text-emerald-600 text-xs">✓</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
