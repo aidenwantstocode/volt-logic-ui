@@ -1,75 +1,141 @@
-# React + TypeScript + Vite
+# VOLT-LOGIC UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Sistem Diagnostik Baterai Kendaraan Listrik (EV) Pre-Dispatch**  
+> Antarmuka inspeksi operasional untuk mengevaluasi kesehatan baterai armada logistik sebelum keberangkatan rute.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ⚡ Gambaran Umum
 
-## React Compiler
+**VOLT-LOGIC UI** adalah aplikasi Single-Page Application (SPA) yang dirancang untuk teknisi dan operator depot armada logistik. Sistem ini memproses data telemetri baterai secara langsung maupun simulasi (Tegangan, Arus, Suhu, dan Resistansi Internal) untuk menghasilkan keputusan operasional preskriptif secara instan (`HEALTHY`, `WARNING`, atau `CRITICAL`).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠 Teknologi yang Digunakan
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Komponen | Teknologi |
+| :--- | :--- |
+| **Framework** | [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) |
+| **Build Tool & Bundler** | [Vite](https://vite.dev/) |
+| **Styling Framework** | [Tailwind CSS v4](https://tailwindcss.com/) (via `@tailwindcss/vite`) |
+| **Ikon & Aset** | Native SVG & [Lucide Icons](https://lucide.dev/) |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📋 Prasyarat Sistem
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Pastikan perangkat Anda telah terpasang perangkat lunak berikut:
 
+* **Node.js**: versi `v20.x` atau lebih baru (direkomendasikan `v24.x LTS`)
+* **npm**: versi `v10.x` atau lebih baru
+* **Git**
+
+Periksa versi di terminal:
+```bash
+node -v
+npm -v
+git --version
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🚀 Panduan Menjalankan Proyek di Lokal
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+### 1. Klon Repositori
+```bash
+git clone https://github.com/<username-atau-organisasi>/volt-logic-ui.git
+cd volt-logic-ui
 ```
+
+### 2. Pasang Dependensi
+```bash
+npm install
+```
+
+### 3. Jalankan Development Server
+```bash
+npm run dev
+```
+
+Aplikasi akan berjalan di `http://localhost:5173/` dengan fitur Hot Module Replacement (HMR) aktif otomatis saat kode dimodifikasi.
+
+---
+
+## 📖 Tutorial Penggunaan Antarmuka
+
+Berikut alur operasional pengujian pada antarmuka VOLT-LOGIC:
+
+### Langkah 1: Pilih Profil Perusahaan & Baterai
+1. Klik dropdown **Nama Perusahaan** dan pilih profil mitra armada (contoh: `PT. Logistik Nusantara Express`).
+2. Dropdown **Jenis baterai** akan aktif otomatis menampilkan opsi tipe kimia baterai yang sesuai. Pilih salah satu (contoh: `Lithium-Ion 400V (NMC)`).
+
+### Langkah 2: Menjalankan Cek Telemetri (AI Health Check)
+1. Klik tombol **Cek/Input Baterai** di sebelah kanan.
+2. Modal input parameter telemetri akan terbuka.
+3. Masukkan data pengujian kendaraan:
+   * **Vehicle ID**: Nomor identitas armada (contoh: `EV-402`)
+   * **Tegangan / Voltage (V)**: Tegangan aktual baterai (contoh: `384.2`)
+   * **Arus / Current (A)**: Arus uji baterai (contoh: `12.5`)
+   * **Suhu / Temp (°C)**: Suhu operasional sel baterai
+   * **Internal Resistance (Ω)**: Nilai hambatan dalam baterai (contoh: `0.038`)
+4. Klik tombol **Jalankan AI Health Check**.
+
+### Langkah 3: Membaca Hasil Keputusan Preskriptif
+Sistem inferensi AI akan mengembalikan status dan izin rute secara instan:
+* **STATUS: HEALTHY** (Suhu <= 35°C): Izin muatan penuh untuk rute jarak jauh antarkota (*Authorized*).
+* **STATUS: WARNING** (Suhu 35°C - 45°C): Pembatasan muatan dan dikhususkan untuk rute pendek dalam kota (*Restricted Micro-delivery*).
+* **STATUS: CRITICAL** (Suhu > 45°C): Larangan jalan penuh (*Grounded*) dan kendaraan wajib dialihkan ke unit pemeliharaan teknis.
+
+### Langkah 4: Meninjau Riwayat Inspeksi
+1. Pastikan profil perusahaan dan baterai telah dipilih.
+2. Klik tombol **Riwayat Database** di sebelah kiri.
+3. Tinjau log tabel audit kendaraan sebelumnya beserta waktu inspeksi dan status AI.
+
+---
+
+## 📂 Struktur Direktori Proyek
+
+```text
+volt-logic-ui/
+├── public/                # Aset publik statis (Logo SVG, favicon)
+│   └── voltlogic-logo.svg
+├── src/
+│   ├── assets/            # Media internal pendukung komponen
+│   ├── App.tsx            # Komponen utama antarmuka, state, logic, dan modal
+│   ├── index.css          # Titik masuk Tailwind CSS v4 (@import "tailwindcss")
+│   └── main.tsx           # Titik kait virtual DOM React
+├── package.json           # Deklarasi paket, skrip, dan metadata proyek
+├── tsconfig.json          # Konfigurasi compiler TypeScript
+└── vite.config.ts         # Konfigurasi bundler Vite & plugin Tailwind v4
+```
+
+---
+
+## 📜 Perintah yang Tersedia
+
+| Perintah | Deskripsi |
+| :--- | :--- |
+| `npm run dev` | Menjalankan server lokal pengembangan Vite. |
+| `npm run build` | Melakukan kompilasi TypeScript dan membuat bundle produksi di folder `/dist`. |
+| `npm run preview` | Menjalankan server lokal untuk menguji hasil build produksi. |
+| `npm run lint` | Menjalankan pemeriksaan format dan standar kode via ESLint. |
+
+---
+
+## 🤝 Panduan Kontribusi Tim
+
+1. Pastikan cabang `main` lokal Anda sinkron dengan remote:
+```bash
+git checkout main
+git pull origin main
+```
+2. Buat cabang fitur baru:
+```bash
+git checkout -b feat/nama-fitur-anda
+```
+3. Gunakan standar pesan commit **Conventional Commits**:
+   * `feat: ...` untuk penambahan fitur atau komponen UI baru
+   * `fix: ...` untuk perbaikan bug atau visual
+   * `refactor: ...` untuk perapian kode tanpa mengubah alur logika
+   * `chore: ...` untuk pembaruan dependensi atau konfigurasi
+4. Unggah cabang ke GitHub dan ajukan **Pull Request (PR)** ke cabang `main`.
