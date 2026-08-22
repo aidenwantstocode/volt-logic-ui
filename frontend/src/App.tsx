@@ -199,7 +199,7 @@ export default function App() {
       <div className="w-full flex-1 flex flex-col items-center justify-center pt-2 pb-24 transition-all duration-300 relative z-10">
 
         {/* Logo VOLTLOGIC SVG with Centered Fading/Pulsing Background Glow */}
-        <div className="relative mb-8 flex justify-center items-center">
+        <div className="relative mb-8 flex justify-center items-center group cursor-pointer">
           {/* Centered animated pulsating background glow under the VoltLogic logo */}
           <div className="absolute -inset-40 sm:-inset-60 md:-inset-80 pointer-events-none flex items-center justify-center -z-10">
             {/* Wide soft emerald ambient glow that fades in and out */}
@@ -211,7 +211,7 @@ export default function App() {
           <img
             src={voltlogicLogo}
             alt="VOLTLOGIC Logo"
-            className="h-20 sm:h-24 w-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300 relative z-10"
+            className="h-20 sm:h-24 w-auto drop-shadow-2xl group-hover:scale-105 hover:scale-105 transition-transform duration-300 relative z-10"
           />
         </div>
 

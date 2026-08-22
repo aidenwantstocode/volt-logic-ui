@@ -33,8 +33,25 @@ body {
 
 .animate-glow-pulse {
   animation: pulseGlow 5s ease-in-out infinite;
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
 }
 
 .animate-glow-pulse-core {
   animation: pulseGlowCore 4s ease-in-out infinite alternate;
-}
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out, filter 0.4s ease-out;
+}
+
+/* Stay at maximum brightness when cursor highlights / hovers the logo */
+.group:hover .animate-glow-pulse {
+  animation: none;
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.group:hover .animate-glow-pulse-core {
+  animation: none;
+  opacity: 0.95;
+  transform: scale(1.15);
+  filter: brightness(1.25);
+}
+
