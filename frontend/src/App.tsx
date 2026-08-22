@@ -202,16 +202,27 @@ export default function App() {
         <div className="relative mb-8 flex justify-center items-center group cursor-pointer">
           {/* Centered animated pulsating background glow under the VoltLogic logo */}
           <div className="absolute -inset-40 sm:-inset-60 md:-inset-80 pointer-events-none flex items-center justify-center -z-10">
-            {/* Wide soft emerald ambient glow that fades in and out */}
-            <div className="w-[600px] sm:w-[900px] md:w-[1200px] h-[380px] sm:h-[550px] md:h-[700px] rounded-full bg-[radial-gradient(ellipse_at_center,_#1b4332_0%,_#0d2118_50%,_transparent_75%)] blur-3xl opacity-80 animate-glow-pulse" />
-            {/* Core vibrant mint/emerald accent glow underneath the logo */}
-            <div className="absolute w-[280px] sm:w-[420px] md:w-[520px] h-[160px] sm:h-[240px] md:h-[300px] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(82,183,136,0.45)_0%,_rgba(27,67,50,0.25)_55%,_transparent_75%)] blur-2xl animate-glow-pulse-core" />
+            {/* Layer 1: Continuous Breathing Pulse Animation (Fades out smoothly when hovered) */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity duration-700 ease-out pointer-events-none">
+              {/* Wide ambient emerald glow */}
+              <div className="w-[600px] sm:w-[900px] md:w-[1200px] h-[380px] sm:h-[550px] md:h-[700px] rounded-full bg-[radial-gradient(ellipse_at_center,_#1b4332_0%,_#0d2118_50%,_transparent_75%)] blur-3xl animate-glow-pulse" />
+              {/* Core vibrant mint/emerald glow */}
+              <div className="absolute w-[280px] sm:w-[420px] md:w-[520px] h-[160px] sm:h-[240px] md:h-[300px] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(82,183,136,0.45)_0%,_rgba(27,67,50,0.25)_55%,_transparent_75%)] blur-2xl animate-glow-pulse-core" />
+            </div>
+
+            {/* Layer 2: Static Peak Brightness Lock (Fades in smoothly when hovered, equal to upper brightness of fade animation) */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out pointer-events-none">
+              {/* Wide ambient glow at peak brightness (0.95 opacity, 1.08 scale) */}
+              <div className="w-[600px] sm:w-[900px] md:w-[1200px] h-[380px] sm:h-[550px] md:h-[700px] rounded-full bg-[radial-gradient(ellipse_at_center,_#1b4332_0%,_#0d2118_50%,_transparent_75%)] blur-3xl opacity-95 scale-[1.08]" />
+              {/* Core mint/emerald glow at peak brightness (0.85 opacity, 1.15 scale) */}
+              <div className="absolute w-[280px] sm:w-[420px] md:w-[520px] h-[160px] sm:h-[240px] md:h-[300px] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(82,183,136,0.45)_0%,_rgba(27,67,50,0.25)_55%,_transparent_75%)] blur-2xl opacity-85 scale-[1.15]" />
+            </div>
           </div>
 
           <img
             src={voltlogicLogo}
             alt="VOLTLOGIC Logo"
-            className="h-20 sm:h-24 w-auto drop-shadow-2xl group-hover:scale-105 hover:scale-105 transition-transform duration-300 relative z-10"
+            className="h-20 sm:h-24 w-auto drop-shadow-2xl group-hover:scale-105 hover:scale-105 transition-transform duration-700 ease-out relative z-10"
           />
         </div>
 
@@ -241,11 +252,10 @@ export default function App() {
 
               {/* In-Flow Options (Gradually expands and pushes downstream items downward) */}
               <div
-                className={`grid transition-all duration-300 ease-out ${
-                  isCompanyOpen
+                className={`grid transition-all duration-300 ease-out ${isCompanyOpen
                     ? 'grid-rows-[1fr] opacity-100 mt-2'
                     : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none'
-                }`}
+                  }`}
               >
                 <div className="overflow-hidden">
                   <div className="bg-white text-gray-800 font-mono text-sm rounded-lg shadow-xl overflow-hidden border border-emerald-500/20 divide-y divide-gray-100">
@@ -267,9 +277,8 @@ export default function App() {
                           setSelectedBattery('');
                           setIsCompanyOpen(false);
                         }}
-                        className={`px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 cursor-pointer flex items-center justify-between transition-colors ${
-                          selectedCompany === comp.name ? 'bg-emerald-50/80 font-bold text-emerald-900' : ''
-                        }`}
+                        className={`px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 cursor-pointer flex items-center justify-between transition-colors ${selectedCompany === comp.name ? 'bg-emerald-50/80 font-bold text-emerald-900' : ''
+                          }`}
                       >
                         <span className="truncate">{comp.name}</span>
                         {selectedCompany === comp.name && (
@@ -296,13 +305,12 @@ export default function App() {
                     setIsCompanyOpen(false);
                   }
                 }}
-                className={`w-full font-mono text-sm px-4 py-3 rounded-lg shadow flex items-center justify-between transition-all duration-200 ${
-                  !selectedCompany
+                className={`w-full font-mono text-sm px-4 py-3 rounded-lg shadow flex items-center justify-between transition-all duration-200 ${!selectedCompany
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     : isBatteryOpen
-                    ? 'bg-white text-gray-800 ring-2 ring-emerald-400 cursor-pointer'
-                    : 'bg-white text-gray-800 hover:bg-gray-50 cursor-pointer'
-                }`}
+                      ? 'bg-white text-gray-800 ring-2 ring-emerald-400 cursor-pointer'
+                      : 'bg-white text-gray-800 hover:bg-gray-50 cursor-pointer'
+                  }`}
               >
                 <span className={`truncate ${!selectedBattery ? 'text-gray-500' : 'text-gray-900 font-medium'}`}>
                   {selectedBattery || 'jenis baterai'}
@@ -314,11 +322,10 @@ export default function App() {
 
               {/* In-Flow Options (Gradually expands and pushes downstream items downward) */}
               <div
-                className={`grid transition-all duration-300 ease-out ${
-                  isBatteryOpen && selectedCompany
+                className={`grid transition-all duration-300 ease-out ${isBatteryOpen && selectedCompany
                     ? 'grid-rows-[1fr] opacity-100 mt-2'
                     : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none'
-                }`}
+                  }`}
               >
                 <div className="overflow-hidden">
                   <div className="bg-white text-gray-800 font-mono text-sm rounded-lg shadow-xl overflow-hidden border border-emerald-500/20 divide-y divide-gray-100">
@@ -338,9 +345,8 @@ export default function App() {
                           setSelectedBattery(type);
                           setIsBatteryOpen(false);
                         }}
-                        className={`px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 cursor-pointer flex items-center justify-between transition-colors ${
-                          selectedBattery === type ? 'bg-emerald-50/80 font-bold text-emerald-900' : ''
-                        }`}
+                        className={`px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-900 cursor-pointer flex items-center justify-between transition-colors ${selectedBattery === type ? 'bg-emerald-50/80 font-bold text-emerald-900' : ''
+                          }`}
                       >
                         <span className="truncate">{type}</span>
                         {selectedBattery === type && (
@@ -618,13 +624,12 @@ export default function App() {
                             {row.ambient_temperature !== null && row.ambient_temperature !== undefined ? `${Number(row.ambient_temperature).toFixed(1)}°C` : (row.temperature ? `${Number(row.temperature).toFixed(1)}°C` : '-')}
                           </td>
                           <td className="p-2">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              row.status === 'HEALTHY'
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${row.status === 'HEALTHY'
                                 ? 'bg-emerald-950 border border-emerald-500 text-emerald-400'
                                 : row.status === 'WARNING'
-                                ? 'bg-amber-950 border border-amber-500 text-amber-400'
-                                : 'bg-rose-950 border border-rose-500 text-rose-400'
-                            }`}>
+                                  ? 'bg-amber-950 border border-amber-500 text-amber-400'
+                                  : 'bg-rose-950 border border-rose-500 text-rose-400'
+                              }`}>
                               {row.status}
                             </span>
                           </td>
