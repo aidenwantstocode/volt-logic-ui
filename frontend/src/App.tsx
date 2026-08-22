@@ -193,17 +193,25 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-[125vh] w-full flex flex-col justify-between items-center p-6 bg-[radial-gradient(ellipse_at_top,_#1b4332_0%,_#0d2118_45%,_#060e0a_100%)] text-gray-100 selection:bg-emerald-500 selection:text-gray-950">
+    <div className="min-h-[125vh] w-full flex flex-col justify-between items-center p-6 bg-[#060e0a] text-gray-100 selection:bg-emerald-500 selection:text-gray-950 relative overflow-hidden">
 
       {/* Central Content (Elevated slightly higher on the page) */}
-      <div className="w-full flex-1 flex flex-col items-center justify-center pt-2 pb-24 transition-all duration-300">
+      <div className="w-full flex-1 flex flex-col items-center justify-center pt-2 pb-24 transition-all duration-300 relative z-10">
 
-        {/* Logo VOLTLOGIC SVG */}
-        <div className="mb-8 flex justify-center">
+        {/* Logo VOLTLOGIC SVG with Centered Fading/Pulsing Background Glow */}
+        <div className="relative mb-8 flex justify-center items-center">
+          {/* Centered animated pulsating background glow under the VoltLogic logo */}
+          <div className="absolute -inset-40 sm:-inset-60 md:-inset-80 pointer-events-none flex items-center justify-center -z-10">
+            {/* Wide soft emerald ambient glow that fades in and out */}
+            <div className="w-[600px] sm:w-[900px] md:w-[1200px] h-[380px] sm:h-[550px] md:h-[700px] rounded-full bg-[radial-gradient(ellipse_at_center,_#1b4332_0%,_#0d2118_50%,_transparent_75%)] blur-3xl opacity-80 animate-glow-pulse" />
+            {/* Core vibrant mint/emerald accent glow underneath the logo */}
+            <div className="absolute w-[280px] sm:w-[420px] md:w-[520px] h-[160px] sm:h-[240px] md:h-[300px] rounded-full bg-[radial-gradient(ellipse_at_center,_rgba(82,183,136,0.45)_0%,_rgba(27,67,50,0.25)_55%,_transparent_75%)] blur-2xl animate-glow-pulse-core" />
+          </div>
+
           <img
             src={voltlogicLogo}
             alt="VOLTLOGIC Logo"
-            className="h-20 sm:h-24 w-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+            className="h-20 sm:h-24 w-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300 relative z-10"
           />
         </div>
 

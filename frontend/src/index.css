@@ -6,4 +6,35 @@ body {
   background-color: #060e0a;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: #f8fafc;
+  overflow-x: hidden;
 }
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes pulseGlowCore {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(0.88);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.15);
+  }
+}
+
+.animate-glow-pulse {
+  animation: pulseGlow 5s ease-in-out infinite;
+}
+
+.animate-glow-pulse-core {
+  animation: pulseGlowCore 4s ease-in-out infinite alternate;
+}
