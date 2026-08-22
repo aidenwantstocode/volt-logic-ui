@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+.git
+.gitignore
+*.log
+*.local
+__pycache__
+*.pyc
+*.db
+*.sqlite
+*.sqlite3
+.venv
+venv
+backend/.env
+.env

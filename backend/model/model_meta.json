@@ -1,0 +1,31 @@
+{
+  "model_name": "Battery_Health_Classifier",
+  "version": "v2.0.0-battery-eis",
+  "features": [
+    "Capacity",
+    "Re",
+    "Rct",
+    "ambient_temperature"
+  ],
+  "classes": [
+    "CRITICAL",
+    "HEALTHY",
+    "WARNING"
+  ],
+  "scaler_mean": [
+    0.8245320837732052,
+    0.07772942306419237,
+    0.12528604476061053,
+    19.9068544282321
+  ],
+  "scaler_scale": [
+    0.25059453885369803,
+    0.02256875581910067,
+    0.044959000257326215,
+    11.175846081761325
+  ],
+  "accuracy": 0.9993,
+  "dataset_samples": 7368,
+  "source_notebook": "Kata_Mamah_WIN_AIC.ipynb",
+  "source_dataset": "Battery_Data_Cleaned.csv"
+}
