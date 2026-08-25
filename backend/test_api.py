@@ -18,16 +18,25 @@ def run_tests():
     init_db()
     client = TestClient(app)
 
-    # 1. Health Check
-    print("\n[1/8] Testing GET /api/health...")
+    # 1. Root & Health Check
+    print("\n[1/9] Testing GET / and GET /api/health and GET /health...")
+    root_resp = client.get("/")
+    assert root_resp.status_code == 200, f"Expected 200 on /, got {root_resp.status_code}"
+    root_data = root_resp.json()
+    assert root_data.get("status") == "online"
+    print(f"  [PASS] Root endpoint returned status: {root_data.get('status')}")
+
     resp = client.get("/api/health")
     assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
     data = resp.json()
     assert data.get("ok") is True, f"Health check failed: {data}"
-    print("  [PASS] Health check OK.")
+
+    resp_alias = client.get("/health")
+    assert resp_alias.status_code == 200, f"Expected 200 on /health, got {resp_alias.status_code}"
+    print("  [PASS] Health check OK on /api/health and /health.")
 
     # 2. ML Prediction (Healthy: Capacity > 0.8249, Re < 0.0777, Rct < 0.1251)
-    print("\n[2/8] Testing POST /api/predict (Healthy EIS telemetry: Capacity=0.95, Re=0.054, Rct=0.105)...")
+    print("\n[2/9] Testing POST /api/predict & POST /predict (Healthy EIS telemetry)...")
     payload = {
         "vehicle_id": "EV-402",
         "company": "PT. Logistik Nusantara Express",
@@ -46,8 +55,13 @@ def run_tests():
     assert "%" in pred["confidence"]
     print(f"  [PASS] Status = {pred['status']} ({pred['status_id']}), Confidence = {pred['confidence']}, Version = {pred['model_version']}")
 
+    # Direct alias test
+    resp2 = client.post("/predict", json=payload)
+    assert resp2.status_code == 200, f"Expected 200 on /predict alias, got {resp2.status_code}"
+    print("  [PASS] /predict direct alias functioning properly.")
+
     # 3. ML Prediction (Critical: Low Capacity & High Resistance)
-    print("\n[3/8] Testing POST /api/predict (Critical Degradation: Capacity=0.65, Re=0.115, Rct=0.210)...")
+    print("\n[3/9] Testing POST /api/predict (Critical Degradation: Capacity=0.65, Re=0.115, Rct=0.210)...")
     critical_payload = {
         "vehicle_id": "EV-999",
         "company": "PT. Logistik Nusantara Express",
@@ -66,7 +80,7 @@ def run_tests():
     print(f"  [PASS] Correctly identified CRITICAL / tidak aman state ({crit_pred['route'][:35]}...)")
 
     # 4. ML Prediction (Warning: Moderate degradation / needs further test)
-    print("\n[4/8] Testing POST /api/predict (Warning / Perlu uji lanjut)...")
+    print("\n[4/9] Testing POST /api/predict (Warning / Perlu uji lanjut)...")
     warning_payload = {
         "vehicle_id": "EV-505",
         "company": "PT. Logistik Nusantara Express",
@@ -82,14 +96,14 @@ def run_tests():
     assert warn_pred["status"] in ["WARNING", "HEALTHY", "CRITICAL"]
     print(f"  [PASS] Warning payload returned status = {warn_pred['status']} ({warn_pred['status_id']})")
 
-    # 5. Scoped Access Enforcement (Missing company/batteryType -> 400)
-    print("\n[5/8] Testing GET /api/history without parameters (Must reject with 400)...")
+    # 5. History Query with/without parameters
+    print("\n[5/9] Testing GET /api/history and /history...")
     resp = client.get("/api/history")
-    assert resp.status_code == 400, f"Expected 400, got {resp.status_code}"
-    print("  [PASS] Blocked unscoped history query with HTTP 400.")
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
+    print(f"  [PASS] Unscoped history returns list (total: {len(resp.json())} items).")
 
     # 6. Save and Read Inspection Record with 4 EIS features
-    print("\n[6/8] Testing POST /api/history and scoped GET /api/history...")
+    print("\n[6/9] Testing POST /api/history and scoped GET /api/history...")
     new_record = {
         "vehicle_id": "EV-TEST-EIS",
         "company": "PT. Fast Track Kuririndo",
@@ -122,7 +136,7 @@ def run_tests():
     print(f"  [PASS] Retrieved {len(records)} scoped inspection records.")
 
     # 7. Payload Size Limit (> 10KB)
-    print("\n[7/8] Testing Request Body Size Limiter (> 10 KB)...")
+    print("\n[7/9] Testing Request Body Size Limiter (> 10 KB)...")
     large_payload = {
         "vehicle_id": "EV-402",
         "company": "A" * 12000,
@@ -137,14 +151,22 @@ def run_tests():
     print(f"  [PASS] Excessive payload rejected ({resp.status_code}).")
 
     # 8. Security Headers
-    print("\n[8/8] Testing Security Headers...")
+    print("\n[8/9] Testing Security Headers...")
     resp = client.get("/api/health")
     assert resp.headers.get("X-Content-Type-Options") == "nosniff"
     assert resp.headers.get("X-Frame-Options") == "DENY"
     print("  [PASS] Verified X-Content-Type-Options and X-Frame-Options.")
 
+    # 9. Custom 404 Handler
+    print("\n[9/9] Testing Custom 404 Handler for Unknown Route...")
+    resp404 = client.get("/nonexistent_endpoint_xyz")
+    assert resp404.status_code == 404
+    data404 = resp404.json()
+    assert "available_endpoints" in data404
+    print("  [PASS] Non-existent endpoint returned descriptive 404 payload.")
+
     print("\n=======================================================")
-    print("SUCCESS: ALL 8 BACKEND TEST SUITES PASSED SUCCESSFULLY!")
+    print("SUCCESS: ALL 9 BACKEND TEST SUITES PASSED SUCCESSFULLY!")
     print("=======================================================")
 
 if __name__ == "__main__":

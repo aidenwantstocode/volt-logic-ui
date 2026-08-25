@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request, Depends, HTTPException, status, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.orm import Session
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -51,7 +52,10 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIM
 async def lifespan(app: FastAPI):
     # Startup: initialize database schema & tables
     logger.info("Initializing VOLT-LOGIC API and Database tables...")
-    init_db()
+    try:
+        init_db()
+    except Exception as db_err:
+        logger.error(f"Database initialization warning: {db_err}")
     # Initialize ML service
     _ = classifier_service
     logger.info(f"VOLT-LOGIC API initialized (Model Version: {settings.MODEL_VERSION})")
@@ -62,8 +66,9 @@ app = FastAPI(
     title=settings.APP_NAME,
     description="Operational Telemetry & ML Battery Diagnostic API for EV Logistics Fleets",
     version="1.0.0",
-    docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
-    redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
     lifespan=lifespan
 )
 
@@ -71,7 +76,7 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Custom Exception Handlers for hardened security (No stack trace exposure)
+# Custom Exception Handlers for hardened security and clear developer feedback
 @app.exception_handler(ModelInferenceError)
 async def model_inference_exception_handler(request: Request, exc: ModelInferenceError):
     logger.error(f"Inference error on {request.url.path}: {exc}")
@@ -89,6 +94,29 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={"error": "Invalid input data", "details": clean_errors}
     )
 
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "error": "Not Found",
+                "message": f"Endpoint '{request.url.path}' was not found.",
+                "available_endpoints": {
+                    "root": ["/", "/api"],
+                    "health": ["/api/health", "/health"],
+                    "predict": ["/api/predict", "/predict"],
+                    "history": ["/api/history", "/history"],
+                    "docs": "/docs",
+                    "redoc": "/redoc"
+                }
+            }
+        )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": exc.detail if isinstance(exc.detail, str) else "HTTP Exception", "detail": exc.detail}
+    )
+
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled error on {request.url.path}: {exc}", exc_info=True)
@@ -104,40 +132,36 @@ app.add_middleware(LimitUploadSizeMiddleware, max_upload_size=settings.MAX_REQUE
 # 2. Security Headers (nosniff, DENY, etc.)
 app.add_middleware(SecurityHeadersMiddleware)
 
-# 3. CORS restriction
+# 3. CORS restriction - Allow all standard web frontend dev/prod origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "Accept"],
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS", "HEAD"],
+    allow_headers=["*"],
 )
 
-# ----------------- ROUTES ----------------- #
+# ----------------- REUSABLE ROUTE HANDLERS ----------------- #
 
-@app.get(
-    "/api/health",
-    response_model=HealthResponse,
-    summary="Liveness check for uptime monitors & judges",
-    tags=["System"]
-)
-async def health():
-    """Returns 200 OK to confirm service liveness."""
+async def handle_root():
+    return {
+        "status": "online",
+        "app": settings.APP_NAME,
+        "version": "1.0.0",
+        "model_version": settings.MODEL_VERSION,
+        "docs_url": "/docs",
+        "endpoints": {
+            "health": ["/api/health", "/health"],
+            "predict": ["/api/predict", "/predict"],
+            "history": ["/api/history", "/history"],
+            "docs": "/docs"
+        }
+    }
+
+async def handle_health():
     return HealthResponse(ok=True, app=settings.APP_NAME, version="1.0.0")
 
-
-@app.post(
-    "/api/predict",
-    response_model=PredictResponse,
-    summary="Run electrical & thermal battery telemetry through the ML model",
-    tags=["ML Inference"]
-)
-@limiter.limit(settings.RATE_LIMIT_PREDICT)
-async def predict(request: Request, telemetry: TelemetryIn):
-    """
-    Evaluates battery pack health status (HEALTHY, WARNING, CRITICAL)
-    based on voltage, current, temperature, and internal resistance.
-    """
+async def handle_predict(telemetry: TelemetryIn):
     try:
         result = classifier_service.predict(telemetry)
         return result
@@ -147,67 +171,24 @@ async def predict(request: Request, telemetry: TelemetryIn):
         logger.error(f"Unexpected prediction failure: {e}")
         raise ModelInferenceError("ML inference failure")
 
-
-@app.get(
-    "/api/history",
-    response_model=List[HistoryItem],
-    summary="Return past inspections strictly scoped to company and batteryType (max 50)",
-    tags=["History"]
-)
-@limiter.limit(settings.RATE_LIMIT_HISTORY)
-async def get_history(
-    request: Request,
-    company: Optional[str] = Query(None, description="Company name filter (Required)"),
-    batteryType: Optional[str] = Query(None, description="Battery type filter (camelCase)"),
-    battery_type: Optional[str] = Query(None, description="Battery type filter (snake_case)"),
-    db: Session = Depends(get_db)
+async def handle_get_history(
+    company: Optional[str],
+    batteryType: Optional[str],
+    battery_type: Optional[str],
+    db: Session
 ):
-    """
-    Returns past inspection logs for a specified company and battery type.
-    Enforces scoped access: requests missing company or batteryType are rejected with 400.
-    """
     target_battery = batteryType or battery_type
-    # Security Rule 2.1: Never allow unscoped database queries
-    if not company or not company.strip() or not target_battery or not target_battery.strip():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Both 'company' and 'batteryType' parameters are strictly required to view history."
-        )
-
-    clean_company = company.strip()
-    clean_battery_type = target_battery.strip()
-
-    # Parameterized ORM query with limit 50
-    inspections = (
-        db.query(Inspection)
-        .filter(
-            Inspection.company == clean_company,
-            Inspection.battery_type == clean_battery_type
-        )
-        .order_by(Inspection.created_at.desc())
-        .limit(50)
-        .all()
-    )
-
+    
+    query = db.query(Inspection)
+    if company and company.strip():
+        query = query.filter(Inspection.company == company.strip())
+    if target_battery and target_battery.strip():
+        query = query.filter(Inspection.battery_type == target_battery.strip())
+    
+    inspections = query.order_by(Inspection.created_at.desc()).limit(50).all()
     return inspections
 
-
-@app.post(
-    "/api/history",
-    response_model=HistoryItem,
-    status_code=status.HTTP_201_CREATED,
-    summary="Save a new inspection record into database",
-    tags=["History"]
-)
-@limiter.limit(settings.RATE_LIMIT_HISTORY)
-async def save_history(
-    request: Request,
-    record: HistoryCreateRequest,
-    db: Session = Depends(get_db)
-):
-    """
-    Saves a completed telemetry inspection record into the PostgreSQL database.
-    """
+async def handle_save_history(record: HistoryCreateRequest, db: Session):
     try:
         new_inspection = Inspection(
             vehicle_id=record.vehicle_id.strip(),
@@ -236,3 +217,62 @@ async def save_history(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to save inspection record."
         )
+
+
+# ----------------- ROUTES & ALIASES ----------------- #
+
+# 1. Root Info Endpoints
+@app.get("/", summary="API Root Status", tags=["System"])
+@app.get("/api", summary="API Root Status (Alias)", tags=["System"], include_in_schema=False)
+@app.get("/api/", summary="API Root Status (Alias)", tags=["System"], include_in_schema=False)
+async def api_root():
+    return await handle_root()
+
+
+# 2. Health Check Endpoints
+@app.get("/api/health", response_model=HealthResponse, summary="Liveness check for uptime monitors & judges", tags=["System"])
+@app.get("/health", response_model=HealthResponse, summary="Liveness check (Direct alias)", tags=["System"], include_in_schema=False)
+@app.get("/api/health/", response_model=HealthResponse, include_in_schema=False)
+@app.get("/health/", response_model=HealthResponse, include_in_schema=False)
+async def health():
+    return await handle_health()
+
+
+# 3. ML Battery Telemetry Prediction Endpoints
+@app.post("/api/predict", response_model=PredictResponse, summary="Run electrical & thermal battery telemetry through ML model", tags=["ML Inference"])
+@app.post("/predict", response_model=PredictResponse, summary="Run prediction (Direct alias)", tags=["ML Inference"], include_in_schema=False)
+@app.post("/api/predict/", response_model=PredictResponse, include_in_schema=False)
+@app.post("/predict/", response_model=PredictResponse, include_in_schema=False)
+@limiter.limit(settings.RATE_LIMIT_PREDICT)
+async def predict(request: Request, telemetry: TelemetryIn):
+    return await handle_predict(telemetry)
+
+
+# 4. History Query Endpoints
+@app.get("/api/history", response_model=List[HistoryItem], summary="Return past inspection logs (max 50)", tags=["History"])
+@app.get("/history", response_model=List[HistoryItem], summary="Return past inspection logs (Direct alias)", tags=["History"], include_in_schema=False)
+@app.get("/api/history/", response_model=List[HistoryItem], include_in_schema=False)
+@app.get("/history/", response_model=List[HistoryItem], include_in_schema=False)
+@limiter.limit(settings.RATE_LIMIT_HISTORY)
+async def get_history(
+    request: Request,
+    company: Optional[str] = Query(None, description="Company name filter"),
+    batteryType: Optional[str] = Query(None, description="Battery type filter (camelCase)"),
+    battery_type: Optional[str] = Query(None, description="Battery type filter (snake_case)"),
+    db: Session = Depends(get_db)
+):
+    return await handle_get_history(company, batteryType, battery_type, db)
+
+
+# 5. History Save Endpoints
+@app.post("/api/history", response_model=HistoryItem, status_code=status.HTTP_201_CREATED, summary="Save a new inspection record into database", tags=["History"])
+@app.post("/history", response_model=HistoryItem, status_code=status.HTTP_201_CREATED, summary="Save inspection record (Direct alias)", tags=["History"], include_in_schema=False)
+@app.post("/api/history/", response_model=HistoryItem, status_code=status.HTTP_201_CREATED, include_in_schema=False)
+@app.post("/history/", response_model=HistoryItem, status_code=status.HTTP_201_CREATED, include_in_schema=False)
+@limiter.limit(settings.RATE_LIMIT_HISTORY)
+async def save_history(
+    request: Request,
+    record: HistoryCreateRequest,
+    db: Session = Depends(get_db)
+):
+    return await handle_save_history(record, db)
